@@ -20,6 +20,15 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Recently Implemented Features
+
+### Advanced RBAC & IAM System
+- **Dual Role System**: DBA and Developer roles with strict UI and API enforcement.
+- **Granular Permissions**: Project-level membership with optional per-database access control.
+- **IAM Dashboards**: Dedicated interfaces for managing users and roles.
+- **SQL Editor Focused Mode**: Restricted database visibility when accessed through project links.
+- **Query History**: Persistent history of executed queries in the SQL Editor.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
