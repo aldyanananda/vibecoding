@@ -1,0 +1,69 @@
+# Product Requirements Document (PRD): Bytebase
+
+## 1. Executive Summary
+Bytebase is an open-source, web-based database schema change and version control tool for teams. It acts as a "GitLab for Databases," providing a centralized GUI for developers, DBAs, and platform engineers to manage database schemas, backups, and security policies across multiple environments (Dev, Staging, Production).
+
+## 2. Target Audience
+* **Developers:** Need a self-service way to request schema changes without waiting for manual DBA approval.
+* **DBAs (Database Administrators):** Need to review changes, enforce SQL standards, and ensure production stability.
+* **Platform Engineers:** Need to automate database migrations within CI/CD pipelines.
+
+## 3. Product Goals
+* **Standardization:** Enforce SQL linting and naming conventions across the organization.
+* **Safety:** Automate backups before changes and provide "drift detection" to ensure manual changes don't bypass the system.
+* **Collaboration:** Provide a clear audit trail and approval workflow for every database change.
+
+---
+
+## 4. User Flow: End-to-End Schema Change
+The following flow describes how a developer updates a table in a production environment using Bytebase.
+
+### Phase 1: Authentication & Workspace Entry
+1.  **Login:** The user logs in via Username/Password or SSO (GitHub, GitLab, Okta).
+2.  **Dashboard:** The user lands on the Workspace Dashboard, showing active projects, recent database activities, and pending tasks.
+
+### Phase 2: Project & Database Selection
+3.  **Enter Project:** Databases in Bytebase are organized by **Projects** (similar to GitLab projects). The user selects the project associated with their application.
+4.  **View Databases:** The user sees a list of database instances (e.g., MySQL-Prod, PostgreSQL-Dev) linked to that project.
+
+### Phase 3: Creating a Change Request (Issue)
+5.  **Initiate Change:** The user clicks "Alter Schema" or "Edit Table."
+6.  **Visual Schema Editor / SQL:** The user can either use a GUI-based table designer or type raw SQL into the editor.
+7.  **Linting & Pre-flight Check:** As the user types, Bytebase runs automated checks (e.g., "No `DROP COLUMN` allowed," "Must have a primary key").
+    * 
+8.  **Create Issue:** The user submits the change, which creates an **Issue** (the central unit of work in Bytebase).
+
+### Phase 4: Review & Approval Workflow
+9.  **Pipeline Generation:** Bytebase automatically creates a pipeline. If the project is configured for "Dev -> Prod," the change must pass Dev first.
+10. **DBA Review:** The designated DBA or lead developer receives a notification. They review the SQL diff and the execution plan.
+11. **Approval:** The reviewer clicks "Approve."
+
+### Phase 5: Execution & Verification
+12. **Execution:** Bytebase executes the SQL against the target database.
+    * **Manual Execution:** Triggered by a button click.
+    * **Scheduled Execution:** Set for a specific maintenance window.
+13. **Backup/Rollback:** Bytebase can automatically create a snapshot before execution. If it fails, the user can initiate a rollback.
+14. **Completion:** Once successful, the Issue is marked as "Closed," and the schema change is recorded in the **Change History**.
+
+---
+
+## 5. Core Functional Requirements
+
+| Feature | Description |
+| :--- | :--- |
+| **SQL Editor** | Web-based editor with syntax highlighting and auto-complete. |
+| **VCS Integration** | Sync schema changes directly from GitHub/GitLab repositories (GitOps). |
+| **Drift Detection** | Periodically check if the actual DB schema matches the Bytebase record; alert if someone changed the DB manually. |
+| **RBAC** | Role-based access control (Owner, DBA, Developer, Member). |
+| **SQL Review Policy** | Customizable rules (e.g., "All tables must have `created_at` timestamp"). |
+| **Multi-Cloud/Instance** | Support for MySQL, PostgreSQL, TiDB, ClickHouse, Snowflake, and MongoDB. |
+
+## 6. Technical Architecture
+Bytebase is typically deployed as a Docker container or via Kubernetes. It connects to database instances using standard drivers.
+
+
+
+## 7. Success Metrics
+* **Lead Time for Schema Change:** Reducing the time from SQL request to production deployment.
+* **Change Failure Rate:** Number of failed migrations or production outages caused by database changes.
+* **Compliance:** 100% audit trail for all production database modifications.
