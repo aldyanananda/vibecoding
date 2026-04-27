@@ -1,6 +1,6 @@
--- Create a new database for the bytebase clone
-CREATE DATABASE IF NOT EXISTS bytebase_clone;
-USE bytebase_clone;
+-- Create a new database for the dbsurf
+CREATE DATABASE IF NOT EXISTS dbsurf;
+USE dbsurf;
 
 -- Create the users table
 CREATE TABLE IF NOT EXISTS users (
