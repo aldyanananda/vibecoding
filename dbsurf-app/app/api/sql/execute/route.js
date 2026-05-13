@@ -124,11 +124,11 @@ export async function POST(req) {
                 try {
                   // Try to make valid JSON by quoting keys
                   const jsonStr = argsStr.replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":').replace(/'/g, '"');
-                  const parsed = JSON.parse(jsonStr);
-                  args = Array.isArray(parsed) ? parsed : [parsed];
+                  // Wrap in array to parse multiple arguments like `{}, {}`
+                  args = JSON.parse(`[${jsonStr}]`);
                 } catch (e) {
                   // If it's something like _id: 1 without braces, or complex syntax, we might fail here
-                  // But we've improved it significantly
+                  console.error('Failed to parse MongoDB args:', e);
                 }
               }
 
@@ -142,6 +142,32 @@ export async function POST(req) {
               } else if (method === 'countDocuments' || method === 'count') {
                 const count = await collection.countDocuments(args[0] || {});
                 docs = [{ count }];
+              } else if (method === 'insertOne') {
+                const result = await collection.insertOne(args[0] || {});
+                docs = [{ acknowledged: result.acknowledged, insertedId: result.insertedId }];
+              } else if (method === 'insertMany') {
+                const result = await collection.insertMany(args[0] || []);
+                docs = [{ acknowledged: result.acknowledged, insertedCount: result.insertedCount }];
+              } else if (method === 'updateOne') {
+                let updateDoc = args[1] || {};
+                if (Object.keys(updateDoc).length > 0 && !Object.keys(updateDoc).some(key => key.startsWith('$'))) {
+                  updateDoc = { $set: updateDoc };
+                }
+                const result = await collection.updateOne(args[0] || {}, updateDoc);
+                docs = [{ acknowledged: result.acknowledged, matchedCount: result.matchedCount, modifiedCount: result.modifiedCount }];
+              } else if (method === 'updateMany') {
+                let updateDoc = args[1] || {};
+                if (Object.keys(updateDoc).length > 0 && !Object.keys(updateDoc).some(key => key.startsWith('$'))) {
+                  updateDoc = { $set: updateDoc };
+                }
+                const result = await collection.updateMany(args[0] || {}, updateDoc);
+                docs = [{ acknowledged: result.acknowledged, matchedCount: result.matchedCount, modifiedCount: result.modifiedCount }];
+              } else if (method === 'deleteOne') {
+                const result = await collection.deleteOne(args[0] || {});
+                docs = [{ acknowledged: result.acknowledged, deletedCount: result.deletedCount }];
+              } else if (method === 'deleteMany') {
+                const result = await collection.deleteMany(args[0] || {});
+                docs = [{ acknowledged: result.acknowledged, deletedCount: result.deletedCount }];
               } else {
                 throw new Error(`Method '${method}' is not supported yet in this editor.`);
               }
